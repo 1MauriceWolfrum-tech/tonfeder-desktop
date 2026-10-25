@@ -29,6 +29,7 @@ export const AboutSettings: React.FC = () => {
     fetchVersion();
   }, []);
 
+  // Tonfeder basiert auf Handy (MIT). Der Knopf fuehrt zur Spendenseite des Originals.
   const handleDonateClick = async () => {
     try {
       await openUrl("https://handy.computer/donate");
@@ -54,12 +55,12 @@ export const AboutSettings: React.FC = () => {
         <ShowWhatsNewOnUpdate descriptionMode="tooltip" grouped={true} />
 
         <SettingContainer
-          title={t("settings.about.supportDevelopment.title")}
-          description={t("settings.about.supportDevelopment.description")}
+          title={t("settings.about.basedOn.title")}
+          description={t("settings.about.basedOn.description")}
           grouped={true}
         >
           <Button variant="primary" size="md" onClick={handleDonateClick}>
-            {t("settings.about.supportDevelopment.button")}
+            {t("settings.about.basedOn.button")}
           </Button>
         </SettingContainer>
 
@@ -71,7 +72,9 @@ export const AboutSettings: React.FC = () => {
           <Button
             variant="secondary"
             size="md"
-            onClick={() => openUrl("https://github.com/cjpais/Handy")}
+            onClick={() =>
+              openUrl("https://github.com/1MauriceWolfrum-tech/tonfeder-desktop")
+            }
           >
             {t("settings.about.sourceCode.button")}
           </Button>

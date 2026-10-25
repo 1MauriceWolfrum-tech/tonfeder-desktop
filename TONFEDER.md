@@ -53,9 +53,21 @@ Die fertige App nicht aus der Claude-App heraus starten, sondern per Doppelklick
 | `bun audit` | 53 Meldungen, alle in Build-Werkzeugen (Vite, Rollup, ESLint), nicht in der App |
 | `cargo audit` | 20 Lücken: `zip` nur über den Updater; `rustls`, `h2`, `webpki` im HTTPS-Stack (per `cargo update` behebbar); `tar`, `rkyv` nicht im Windows-Build; `quick-xml` nur beim Bauen |
 
+**Nach Schritt 3a (25.10.2026):** `bun audit` 0 Meldungen (nach `bun audit fix`). `cargo audit` 3 Lücken: `quick-xml` (2, nur beim Bauen über `tauri-utils`) und `rkyv` (nicht im Windows-Build). Updater samt `zip`, `tar` und `minisign-verify` entfernt; `rustls` 0.23.46, `rustls-webpki` 0.103.16, `h2` 0.4.20, `webpki-roots` 1.0.10.
+
+## Änderungen gegenüber Handy
+
+**3a · Name, Logo, Sicherheit** (Branch `tonfeder/3a-name-logo-sicherheit`)
+- `tauri.conf.json`: Produktname Tonfeder, Programmdatei `tonfeder.exe`, Kennung `de.tonfeder.app` (eigener Datenordner, getrennt von Handy). Updater-Konfiguration und der Signier-Befehl des Handy-Autors entfernt.
+- Updater-Plugin ausgebaut (`Cargo.toml`, `lib.rs`, Capabilities); `update_checks_forced_disabled()` liefert immer `true`.
+- App-Symbole aus `src-tauri/icons/tonfeder-1024.png`, Tray-Bilder in `src-tauri/resources/`, beides erzeugt mit `scripts/tonfeder-symbole.ps1` und `bun tauri icon`.
+- Farben in `src/styles/theme.css` auf Lime umgestellt; Text-Logo und Seitenleisten-Symbol ersetzt (Komponentennamen bleiben gleich, damit Upstream-Updates weniger kollidieren).
+- „Handy“ in allen Übersetzungen durch „Tonfeder“ ersetzt; die Über-Seite nennt Handy als Grundlage (Knopf „Handy unterstützen“), Quellcode-Link auf dieses Repo.
+- Interne Bezeichner (Fensterklassen, Portable-Marker, `HANDY_*`-Variablen) bleiben unverändert.
+
 ## Geplante Änderungen
 
-1. Name und Logo Tonfeder, Updater ausbauen, HTTPS-Bibliotheken aktualisieren
+1. ~~Name und Logo Tonfeder, Updater ausbauen, HTTPS-Bibliotheken aktualisieren~~ (3a)
 2. Deutsch als Standard, Modellwahl für die RTX 2060 (Whisper Turbo oder Parakeet)
 3. Rechte Strg-Taste allein als Auslöser
 4. Wörterbuch nach Klang mit Kölner Phonetik (statt nur Soundex)
