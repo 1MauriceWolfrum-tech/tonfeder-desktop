@@ -683,13 +683,50 @@ impl TranscriptionManager {
                     .store(false, Ordering::Release);
             }
             let settings = get_settings(&self_clone.app_handle);
-            if let Err(e) = self_clone.load_model(&settings.selected_model) {
-                error!("Failed to load model: {}", e);
+            let loaded = match self_clone.load_model(&settings.selected_model) {
+                Ok(()) => true,
+                Err(e) => {
+                    error!("Failed to load model: {}", e);
+                    false
+                }
+            };
+            {
+                let mut is_loading = self_clone.is_loading.lock().unwrap();
+                *is_loading = false;
+                self_clone.loading_condvar.notify_all();
             }
-            let mut is_loading = self_clone.is_loading.lock().unwrap();
-            *is_loading = false;
-            self_clone.loading_condvar.notify_all();
+            // Tonfeder: warm up after the loading flag is cleared, so a
+            // dictation started meanwhile is not blocked by the load wait.
+            if loaded {
+                self_clone.warm_up();
+            }
         });
+    }
+
+    /// Tonfeder: runs one short throwaway transcription right after a model
+    /// load, so the GPU backend compiles its kernels now instead of on the
+    /// first real dictation. Measured on an RTX 2060 (Vulkan): the first run
+    /// after a load took ~9 s for 2.7 s of audio, warm runs ~1 s for 29 s.
+    pub fn warm_up(&self) {
+        if !self.is_model_loaded() {
+            return;
+        }
+        let started = Instant::now();
+        // 1.5 s of a quiet 220 Hz tone: enough to run encoder and decoder once.
+        let samples: Vec<f32> = (0..24_000)
+            .map(|i| 0.01 * (2.0 * std::f32::consts::PI * 220.0 * i as f32 / 16_000.0).sin())
+            .collect();
+        match self.decode_batch(samples) {
+            Ok(_) => info!("Warm-up finished in {} ms", started.elapsed().as_millis()),
+            Err(e) => warn!("Warm-up failed (ignored): {}", e),
+        }
+    }
+
+    /// Tonfeder: `warm_up` on a background thread, for callers that loaded a
+    /// model synchronously (e.g. the model picker).
+    pub fn warm_up_in_background(&self) {
+        let self_clone = self.clone();
+        thread::spawn(move || self_clone.warm_up());
     }
 
     pub fn get_current_model(&self) -> Option<String> {

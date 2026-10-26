@@ -147,10 +147,11 @@ pub enum OverlayStyle {
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Type, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum ModelUnloadTimeout {
+    // Tonfeder: keep the model loaded by default; reloading costs a cold GPU run.
+    #[default]
     Never,
     Immediately,
     Min2,
-    #[default]
     Min5,
     Min10,
     Min15,
@@ -579,7 +580,8 @@ fn default_whats_new_last_seen_version() -> String {
 }
 
 fn default_selected_language() -> String {
-    "auto".to_string()
+    // Tonfeder: German by default (skips language detection, avoids misdetection).
+    "de".to_string()
 }
 
 fn default_overlay_position() -> OverlayPosition {
@@ -978,7 +980,7 @@ pub fn get_default_settings() -> AppSettings {
         clamshell_microphone: None,
         selected_output_device: None,
         translate_to_english: false,
-        selected_language: "auto".to_string(),
+        selected_language: default_selected_language(),
         overlay_position: default_overlay_position(),
         debug_mode: false,
         log_level: default_log_level(),

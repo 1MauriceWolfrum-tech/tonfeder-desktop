@@ -179,6 +179,9 @@ pub fn switch_active_model(app: &AppHandle, model_id: &str) -> Result<(), String
         return Err(e.to_string());
     }
 
+    // Tonfeder: compile the GPU kernels now, not on the first dictation.
+    transcription_manager.warm_up_in_background();
+
     Ok(())
 }
 

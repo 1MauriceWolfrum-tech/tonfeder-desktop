@@ -212,6 +212,11 @@ fn initialize_core_logic(app_handle: &AppHandle) {
     app_handle.manage(model_manager.clone());
     app_handle.manage(transcription_manager.clone());
     app_handle.manage(history_manager.clone());
+
+    // Tonfeder: load and warm up the selected model in the background right
+    // at startup, so the first dictation does not pay for loading and the
+    // GPU warm-up. Without a downloaded model this only logs an error.
+    transcription_manager.initiate_model_load();
     app_handle.manage(tray::TrayState::new());
 
     // Note: Shortcuts are NOT initialized here.
