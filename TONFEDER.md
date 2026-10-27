@@ -29,7 +29,8 @@ Voraussetzungen: Visual Studio Build Tools 2022 (C++), Rust, Bun, CMake, Vulkan 
 $env:CARGO_TARGET_DIR = 'C:\tf'   # kurzer Pfad gegen die 260-Zeichen-Grenze von Windows
 bun install
 bun run tauri dev                  # Entwicklung
-bun run tauri build --no-bundle    # eigenständige exe: C:\tf\release\handy.exe
+bun run tauri build --no-bundle    # eigenständige exe: C:\tf\release\tonfeder.exe
+bun run tauri build --bundles nsis # Installer: C:\tf\release\bundle\nsis\Tonfeder_<version>_x64-setup.exe
 ```
 
 **Nur beim Bauen aus der Claude-App heraus** zusätzlich:
@@ -41,6 +42,17 @@ $env:LOCALAPPDATA = 'C:\tf\appdata'
 Grund: Die Claude-App läuft als Windows-App-Paket (MSIX). Windows leitet Schreibzugriffe ihrer Kindprozesse auf `%LOCALAPPDATA%` in einen versteckten Paketordner um. `transcribe-cpp-sys` legt dort eine kurze Junction an (`%LOCALAPPDATA%\tcs`), die MSBuild dann nicht findet. Fehlerbild: `MSB1009: Die Projektdatei ist nicht vorhanden` beim CMake-Compilertest. In einem normalen Terminal tritt das nicht auf.
 
 Die fertige App nicht aus der Claude-App heraus starten, sondern per Doppelklick: Sonst landen Einstellungen und Modelle im umgeleiteten Paketordner.
+
+## Mac-Version (experimentell)
+
+Die Mac-Version baut GitHub Actions mit `.github/workflows/tonfeder-mac.yml`, für Apple Silicon (`macos-26`) und Intel (`macos-latest`, cross-kompiliert).
+
+- **Release veröffentlicht:** Der Workflow baut und hängt `Tonfeder_<version>_aarch64.dmg` und `Tonfeder_<version>_x64.dmg` an das Release.
+- **Push auf einen `tonfeder/*`-Branch** oder **manuell** (Actions → Tonfeder macOS → Run workflow, nur wenn die Datei auf `main` liegt): baut nur, die DMGs liegen 30 Tage als Artefakt beim Lauf. So lässt sich der Mac-Build vor einem Release prüfen.
+
+Es gibt kein Apple-Entwicklerzertifikat. Die App ist nur ad-hoc signiert (`signingIdentity: "-"`), macOS verlangt deshalb beim ersten Start „Dennoch öffnen“ unter Datenschutz & Sicherheit. Weil sich die Ad-hoc-Signatur mit jedem Build ändert, kann macOS die Bedienungshilfen-Freigabe nach einem Update erneut abfragen.
+
+Die Handy-Workflows (`main-build.yml`, `release.yml` usw.) erwarten Handys Signatur-Secrets und schlagen hier fehl. Für Tonfeder zählt nur `tonfeder-mac.yml`.
 
 ## Sicherheitsprüfung (23.10.2026, Stand `5a9451e`)
 
