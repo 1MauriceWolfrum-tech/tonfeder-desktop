@@ -235,7 +235,7 @@ fn preserve_case_pattern(original: &str, replacement: &str) -> String {
 }
 
 /// Extracts punctuation prefix and suffix from a word
-fn extract_punctuation(word: &str) -> (&str, &str) {
+pub(crate) fn extract_punctuation(word: &str) -> (&str, &str) {
     // String slices use byte offsets. Derive both boundaries from char_indices
     // so multibyte punctuation such as `。` and `「」` can never be split.
     let prefix_end = word

@@ -900,6 +900,18 @@ pub fn change_word_correction_threshold_setting(
 
 #[tauri::command]
 #[specta::specta]
+pub fn change_german_phonetic_correction_setting(
+    app: AppHandle,
+    enabled: bool,
+) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    settings.german_phonetic_correction = enabled;
+    settings::write_settings(&app, settings);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn change_extra_recording_buffer_setting(app: AppHandle, ms: u64) -> Result<(), String> {
     let mut settings = settings::get_settings(&app);
     settings.extra_recording_buffer_ms = ms;

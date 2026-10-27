@@ -351,6 +351,10 @@
         "remove": "Suprimiu {{word}}",
         "duplicate": "«{{word}}» ja existeix"
       },
+      "germanPhonetic": {
+        "title": "German sound matching",
+        "description": "For German text, Tonfeder also compares custom words by how they sound (Cologne phonetics), umlauts included, e.g. \"jeschke\" → \"Jäschke\" or \"frost lein\" → \"FrostLine\"."
+      },
       "voiceActivityDetection": {
         "title": "Detecció d'activitat de veu",
         "description": "Filtra els silencis dels enregistraments. Els models compatibles amb la transcripció en temps real utilitzen un marge final de detecció de veu més llarg; si desactiveu la detecció, s'enregistra l'àudio sense filtrar."
@@ -612,6 +616,11 @@
         "title": "Codi font",
         "description": "Consulta el codi font i col·laboreu-hi",
         "button": "Mostra al GitHub"
+      },
+      "basedOn": {
+        "title": "Based on Handy",
+        "description": "Tonfeder is built on Handy by CJ Pais (MIT license). You can support the original project here.",
+        "button": "Support Handy"
       },
       "supportDevelopment": {
         "title": "Dona suport al desenvolupament",

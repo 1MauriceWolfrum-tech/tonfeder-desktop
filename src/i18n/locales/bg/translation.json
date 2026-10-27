@@ -351,6 +351,10 @@
         "remove": "Премахване на {{word}}",
         "duplicate": "„{{word}}“ вече съществува"
       },
+      "germanPhonetic": {
+        "title": "German sound matching",
+        "description": "For German text, Tonfeder also compares custom words by how they sound (Cologne phonetics), umlauts included, e.g. \"jeschke\" → \"Jäschke\" or \"frost lein\" → \"FrostLine\"."
+      },
       "voiceActivityDetection": {
         "title": "Откриване на гласова активност",
         "description": "Филтрира тишината от записите. Моделите с поддръжка на стрийминг използват по-дълга опашка на VAD; изключването на VAD записва необработен звук."
@@ -608,6 +612,11 @@
         "title": "Изходен код",
         "description": "Преглед на изходния код и принос",
         "button": "Вижте в GitHub"
+      },
+      "basedOn": {
+        "title": "Based on Handy",
+        "description": "Tonfeder is built on Handy by CJ Pais (MIT license). You can support the original project here.",
+        "button": "Support Handy"
       },
       "supportDevelopment": {
         "title": "Подкрепете разработката",

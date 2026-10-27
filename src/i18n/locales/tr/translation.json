@@ -351,6 +351,10 @@
         "remove": "{{word}} Kaldır",
         "duplicate": "\"{{word}}\" zaten mevcut"
       },
+      "germanPhonetic": {
+        "title": "German sound matching",
+        "description": "For German text, Tonfeder also compares custom words by how they sound (Cologne phonetics), umlauts included, e.g. \"jeschke\" → \"Jäschke\" or \"frost lein\" → \"FrostLine\"."
+      },
       "voiceActivityDetection": {
         "title": "Ses Etkinliği Algılama",
         "description": "Kayıtlardaki sessizliği filtreler. Akış destekli modeller daha uzun bir VAD kuyruğu kullanır; VAD devre dışı bırakıldığında ham ses kaydedilir."
@@ -608,6 +612,11 @@
         "title": "Kaynak Kodu",
         "description": "Kaynak kodunu görüntüle ve katkıda bulun",
         "button": "GitHub'da Görüntüle"
+      },
+      "basedOn": {
+        "title": "Based on Handy",
+        "description": "Tonfeder is built on Handy by CJ Pais (MIT license). You can support the original project here.",
+        "button": "Support Handy"
       },
       "supportDevelopment": {
         "title": "Geliştirmeyi Destekle",

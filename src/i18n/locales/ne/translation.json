@@ -351,6 +351,10 @@
         "remove": "{{word}} हटाउनुहोस्",
         "duplicate": "\"{{word}}\" पहिले नै छ"
       },
+      "germanPhonetic": {
+        "title": "German sound matching",
+        "description": "For German text, Tonfeder also compares custom words by how they sound (Cologne phonetics), umlauts included, e.g. \"jeschke\" → \"Jäschke\" or \"frost lein\" → \"FrostLine\"."
+      },
       "voiceActivityDetection": {
         "title": "भ्वाइस एक्टिभिटी डिटेक्सन",
         "description": "रेकर्डिङबाट मौनता हटाउँछ। स्ट्रिमिङ-सक्षम मोडेलहरूले लामो VAD टेल प्रयोग गर्छन्; VAD अफ गर्दा कच्चा अडियो रेकर्ड हुन्छ।"
@@ -612,6 +616,11 @@
         "title": "स्रोत कोड",
         "description": "स्रोत कोड हेर्नुहोस् र योगदान गर्नुहोस्",
         "button": "GitHub मा हेर्नुहोस्"
+      },
+      "basedOn": {
+        "title": "Based on Handy",
+        "description": "Tonfeder is built on Handy by CJ Pais (MIT license). You can support the original project here.",
+        "button": "Support Handy"
       },
       "supportDevelopment": {
         "title": "विकासलाई सहयोग गर्नुहोस्",

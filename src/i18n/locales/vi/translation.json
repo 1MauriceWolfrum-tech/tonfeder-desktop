@@ -351,6 +351,10 @@
         "remove": "Xóa {{word}}",
         "duplicate": "\"{{word}}\" đã tồn tại"
       },
+      "germanPhonetic": {
+        "title": "German sound matching",
+        "description": "For German text, Tonfeder also compares custom words by how they sound (Cologne phonetics), umlauts included, e.g. \"jeschke\" → \"Jäschke\" or \"frost lein\" → \"FrostLine\"."
+      },
       "voiceActivityDetection": {
         "title": "Phát hiện hoạt động giọng nói",
         "description": "Lọc bỏ khoảng lặng khỏi bản ghi. Các mô hình hỗ trợ truyền trực tiếp dùng đuôi VAD dài hơn; tắt VAD sẽ ghi âm thanh thô."
@@ -608,6 +612,11 @@
         "title": "Mã nguồn",
         "description": "Xem mã nguồn và đóng góp",
         "button": "Xem trên GitHub"
+      },
+      "basedOn": {
+        "title": "Based on Handy",
+        "description": "Tonfeder is built on Handy by CJ Pais (MIT license). You can support the original project here.",
+        "button": "Support Handy"
       },
       "supportDevelopment": {
         "title": "Hỗ trợ phát triển",

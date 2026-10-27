@@ -190,7 +190,9 @@ fn build_headers(provider: &PostProcessProvider, api_key: &str) -> Result<Header
     );
     headers.insert(
         USER_AGENT,
-        HeaderValue::from_static("Tonfeder/1.0 (+https://github.com/1MauriceWolfrum-tech/tonfeder-desktop)"),
+        HeaderValue::from_static(
+            "Tonfeder/1.0 (+https://github.com/1MauriceWolfrum-tech/tonfeder-desktop)",
+        ),
     );
     headers.insert("X-Title", HeaderValue::from_static("Tonfeder"));
 

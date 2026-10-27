@@ -351,6 +351,10 @@
         "remove": "Rimuovi {{word}}",
         "duplicate": "\"{{word}}\" esiste già"
       },
+      "germanPhonetic": {
+        "title": "German sound matching",
+        "description": "For German text, Tonfeder also compares custom words by how they sound (Cologne phonetics), umlauts included, e.g. \"jeschke\" → \"Jäschke\" or \"frost lein\" → \"FrostLine\"."
+      },
       "voiceActivityDetection": {
         "title": "Rilevamento dell'attività vocale",
         "description": "Filtra il silenzio dalle registrazioni. I modelli che supportano lo streaming utilizzano una coda VAD più lunga; disabilitando la VAD si registra l'audio grezzo."
@@ -608,6 +612,11 @@
         "title": "Codice Sorgente",
         "description": "Vedi e contribuisci al codice sorgente",
         "button": "Vedi su GitHub"
+      },
+      "basedOn": {
+        "title": "Based on Handy",
+        "description": "Tonfeder is built on Handy by CJ Pais (MIT license). You can support the original project here.",
+        "button": "Support Handy"
       },
       "supportDevelopment": {
         "title": "Supporta lo Sviluppo",

@@ -345,11 +345,15 @@
       },
       "customWords": {
         "title": "Benutzerdefinierte Wörter",
-        "description": "Hilf unterstützten Modellen, Namen und Fachbegriffe zu erkennen. Die unscharfe Korrektur ist derzeit auf Wörter mit den Buchstaben A–Z und Zahlen beschränkt.",
+        "description": "Hilf unterstützten Modellen, Namen und Fachbegriffe zu erkennen. Die unscharfe Korrektur ist auf Wörter mit A–Z und Zahlen beschränkt, der deutsche Klangabgleich kann auch Umlaute.",
         "placeholder": "Wort hinzufügen",
         "add": "Hinzufügen",
         "remove": "{{word}} entfernen",
         "duplicate": "\"{{word}}\" existiert bereits"
+      },
+      "germanPhonetic": {
+        "title": "Deutscher Klangabgleich",
+        "description": "Bei deutschem Text vergleicht Tonfeder benutzerdefinierte Wörter auch nach ihrem Klang (Kölner Phonetik), Umlaute eingeschlossen, z. B. „jeschke“ → „Jäschke“ oder „frost lein“ → „FrostLine“."
       },
       "voiceActivityDetection": {
         "title": "Sprachaktivitätserkennung (VAD)",

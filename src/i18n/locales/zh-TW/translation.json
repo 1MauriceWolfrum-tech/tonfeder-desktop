@@ -351,6 +351,10 @@
         "remove": "刪除 {{word}}",
         "duplicate": "「{{word}}」已存在"
       },
+      "germanPhonetic": {
+        "title": "German sound matching",
+        "description": "For German text, Tonfeder also compares custom words by how they sound (Cologne phonetics), umlauts included, e.g. \"jeschke\" → \"Jäschke\" or \"frost lein\" → \"FrostLine\"."
+      },
       "voiceActivityDetection": {
         "title": "語音活動偵測",
         "description": "過濾錄音中的靜音。支援串流的模型會使用較長的 VAD 尾段；停用 VAD 則會錄製原始音訊"
@@ -608,6 +612,11 @@
         "title": "原始碼",
         "description": "檢視原始碼並參與貢獻",
         "button": "在 GitHub 上檢視"
+      },
+      "basedOn": {
+        "title": "Based on Handy",
+        "description": "Tonfeder is built on Handy by CJ Pais (MIT license). You can support the original project here.",
+        "button": "Support Handy"
       },
       "supportDevelopment": {
         "title": "支持開發",

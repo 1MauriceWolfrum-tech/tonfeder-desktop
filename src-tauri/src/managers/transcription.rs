@@ -1,7 +1,7 @@
 use crate::audio_toolkit::chunking;
 use crate::audio_toolkit::{
-    apply_custom_words, detect_output_language, normalize_transcription_output,
-    remove_filler_words, OutputLanguageEvidence,
+    apply_custom_words, apply_german_phonetic_words, detect_output_language,
+    normalize_transcription_output, remove_filler_words, OutputLanguageEvidence,
 };
 use crate::chinese_script::{convert_chinese_script, ChineseVariety};
 use crate::engine_supervisor::{
@@ -1509,9 +1509,12 @@ fn post_process_transcription_text(
         // transcribed text itself, constrained to the model's languages. Only
         // consulted when it can change the outcome (built-in gated fillers or
         // Chinese script conversion).
+        let german_phonetic =
+            settings.german_phonetic_correction && !settings.custom_words.is_empty();
         let output_language = match output_language {
             OutputLanguageEvidence::Unknown
                 if converts_script
+                    || german_phonetic
                     || (settings.filler_word_removal_enabled
                         && settings.custom_filler_words.is_none()) =>
             {
@@ -1539,6 +1542,15 @@ fn post_process_transcription_text(
             _ => raw,
         };
 
+        // Tonfeder: German output is matched by sound first. This also runs
+        // when the model got the custom words as vocabulary, because a
+        // prompted model still writes "frost lein" or "Jeschke" at times.
+        let raw = if german_phonetic && is_german(&output_language) {
+            apply_german_phonetic_words(&raw, &settings.custom_words)
+        } else {
+            raw
+        };
+
         let corrected = if !settings.custom_words.is_empty() && !custom_words_already_prompted {
             apply_custom_words(
                 &raw,
@@ -1558,6 +1570,12 @@ fn post_process_transcription_text(
 
         normalize_transcription_output(&without_fillers)
     })
+}
+
+fn is_german(output_language: &OutputLanguageEvidence) -> bool {
+    output_language
+        .language()
+        .is_some_and(|language| language == "de" || language.starts_with("de-"))
 }
 
 /// Characters to wait for before detecting the preview's language. A lone
@@ -2229,6 +2247,60 @@ mod tests {
             &supported,
         );
         assert_eq!(corrected, "i use Handy every day");
+    }
+
+    #[test]
+    fn german_output_is_matched_by_sound_even_after_prompting() {
+        let settings = AppSettings {
+            selected_language: "de".to_string(),
+            custom_words: vec!["Jäschke".to_string(), "FrostLine 300".to_string()],
+            filler_word_removal_enabled: false,
+            ..Default::default()
+        };
+        let evidence = OutputLanguageEvidence::UserSelected("de".to_string());
+        let result = post_process_transcription_text(
+            "Frau jeschke meldet, die frost lein 300 läuft.".to_string(),
+            &settings,
+            true,
+            &evidence,
+            &languages(&["de", "en"]),
+        );
+        assert_eq!(result, "Frau Jäschke meldet, die FrostLine 300 läuft.");
+    }
+
+    #[test]
+    fn german_phonetic_correction_needs_german_output_and_the_setting() {
+        let custom_words = vec!["Jäschke".to_string()];
+        let text = "Frau jeschke meldet sich.";
+
+        let english = AppSettings {
+            custom_words: custom_words.clone(),
+            filler_word_removal_enabled: false,
+            ..Default::default()
+        };
+        let result = post_process_transcription_text(
+            text.to_string(),
+            &english,
+            true,
+            &OutputLanguageEvidence::UserSelected("en".to_string()),
+            &languages(&["de", "en"]),
+        );
+        assert_eq!(result, text);
+
+        let switched_off = AppSettings {
+            custom_words,
+            german_phonetic_correction: false,
+            filler_word_removal_enabled: false,
+            ..Default::default()
+        };
+        let result = post_process_transcription_text(
+            text.to_string(),
+            &switched_off,
+            true,
+            &OutputLanguageEvidence::UserSelected("de".to_string()),
+            &languages(&["de", "en"]),
+        );
+        assert_eq!(result, text);
     }
 }
 

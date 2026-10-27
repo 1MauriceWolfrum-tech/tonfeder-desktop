@@ -345,11 +345,15 @@
       },
       "customWords": {
         "title": "Custom Words",
-        "description": "Help supported models recognize names and specialized terms. Fuzzy correction is currently limited to words using A–Z and numbers.",
+        "description": "Help supported models recognize names and specialized terms. Fuzzy correction is limited to words using A–Z and numbers; German sound matching also handles umlauts.",
         "placeholder": "Add a word",
         "add": "Add",
         "remove": "Remove {{word}}",
         "duplicate": "\"{{word}}\" already exists"
+      },
+      "germanPhonetic": {
+        "title": "German sound matching",
+        "description": "For German text, Tonfeder also compares custom words by how they sound (Cologne phonetics), umlauts included, e.g. \"jeschke\" → \"Jäschke\" or \"frost lein\" → \"FrostLine\"."
       },
       "voiceActivityDetection": {
         "title": "Voice Activity Detection",

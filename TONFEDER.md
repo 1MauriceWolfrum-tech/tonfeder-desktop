@@ -77,12 +77,22 @@ Die Handy-Workflows (`main-build.yml`, `release.yml` usw.) erwarten Handys Signa
 - „Handy“ in allen Übersetzungen durch „Tonfeder“ ersetzt; die Über-Seite nennt Handy als Grundlage (Knopf „Handy unterstützen“), Quellcode-Link auf dieses Repo.
 - Interne Bezeichner (Fensterklassen, Portable-Marker, `HANDY_*`-Variablen) bleiben unverändert.
 
+**3b · Tempo und Deutsch** (Branch `tonfeder/3b-tempo-deutsch`)
+- Das gewählte Modell wird beim Start geladen und mit 1,5 s Ton aufgewärmt (`TranscriptionManager::warm_up`), auch nach einem Modellwechsel. So ist schon das erste Diktat schnell.
+- Standard: Sprache Deutsch, Modell nie entladen.
+
+**3d · Wörterbuch nach deutschem Klang** (Branch `tonfeder/3d-woerterbuch`)
+- `src-tauri/src/audio_toolkit/cologne.rs`: Kölner Phonetik und Abgleich der benutzerdefinierten Wörter nach Klang, mit Umlauten. Läuft nur bei deutschem Text und auch dann, wenn das Modell die Wörter schon als Vokabular bekommen hat. Handys Soundex-Abgleich (`text.rs`) läuft danach unverändert.
+- Regeln: Der Klang-Code muss exakt übereinstimmen, dazu muss die Schreibweise ähnlich genug sein (mindestens 60 %, bei kurzen Codes 75 %). Bis zu vier Wörter werden zusammengezogen („luft wasser wärme pumpe“ → „Luft-Wasser-Wärmepumpe“), nie über Satzzeichen, Zahlen oder Funktionswörter („der“, „mit“ …) hinweg. Wortformen mit Endung bleiben erhalten („Europaletten“), getrennt erkannte bekommen sie wieder angehängt („euro paletten“ → „Europaletten“). Eine Zahl am Ende des Eintrags („FrostLine 300“) wird nur übernommen, wenn sie auch gesprochen wurde.
+- Gemessen: 1 Änderung in 19.477 Wörtern deutscher Fachtexte (Wikipedia: Wärmepumpe, Kältemaschine, Lagerhaltung u. a.) und den App-Texten, nämlich „Luft/Wasser-Wärmepumpe“ → „Luft-Wasser-Wärmepumpe“ (die eingetragene Schreibweise). 16 von 17 typischen Verhörern erkannt; nicht erkannt wird „schiller“ für „Chiller“ (englische Aussprache).
+- Schalter „Deutscher Klangabgleich“ unter Erweitert → Transkription, Einstellung `german_phonetic_correction`, standardmäßig an.
+
 ## Geplante Änderungen
 
 1. ~~Name und Logo Tonfeder, Updater ausbauen, HTTPS-Bibliotheken aktualisieren~~ (3a)
-2. Deutsch als Standard, Modellwahl für die RTX 2060 (Whisper Turbo oder Parakeet)
+2. ~~Deutsch als Standard, Modell vorladen und aufwärmen~~ (3b); offen: Modellvergleich für Deutsch
 3. Rechte Strg-Taste allein als Auslöser
-4. Wörterbuch nach Klang mit Kölner Phonetik (statt nur Soundex)
+4. ~~Wörterbuch nach Klang mit Kölner Phonetik~~ (3d)
 5. Sprachbefehle: „neuer Absatz“, „Doppelpunkt“, „Spiegelstrich“
 6. Aufnahme-Anzeige im Tonfeder-Stil
 7. Optional: Nachbearbeitung mit lokalem Sprachmodell (Ollama)

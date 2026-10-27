@@ -445,6 +445,10 @@ pub struct AppSettings {
     pub model_unload_timeout: ModelUnloadTimeout,
     #[serde(default = "default_word_correction_threshold")]
     pub word_correction_threshold: f64,
+    /// Tonfeder: match custom words by German sound (Cologne phonetics) in
+    /// German output, see `audio_toolkit::cologne`.
+    #[serde(default = "default_german_phonetic_correction")]
+    pub german_phonetic_correction: bool,
     #[serde(default = "default_history_limit")]
     pub history_limit: usize,
     #[serde(default = "default_recording_retention_period")]
@@ -627,6 +631,10 @@ fn default_log_level() -> LogLevel {
 
 fn default_word_correction_threshold() -> f64 {
     0.18
+}
+
+fn default_german_phonetic_correction() -> bool {
+    true
 }
 
 fn default_paste_delay_ms() -> u64 {
@@ -987,6 +995,7 @@ pub fn get_default_settings() -> AppSettings {
         custom_words: Vec::new(),
         model_unload_timeout: ModelUnloadTimeout::default(),
         word_correction_threshold: default_word_correction_threshold(),
+        german_phonetic_correction: default_german_phonetic_correction(),
         history_limit: default_history_limit(),
         recording_retention_period: default_recording_retention_period(),
         paste_method: PasteMethod::default(),

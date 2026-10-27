@@ -669,6 +669,7 @@ pub fn run(cli_args: CliArgs) {
             shortcut::change_overlay_style_setting,
             shortcut::change_debug_mode_setting,
             shortcut::change_word_correction_threshold_setting,
+            shortcut::change_german_phonetic_correction_setting,
             shortcut::change_extra_recording_buffer_setting,
             shortcut::change_paste_delay_ms_setting,
             shortcut::change_paste_delay_after_ms_setting,

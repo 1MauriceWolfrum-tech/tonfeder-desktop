@@ -351,6 +351,10 @@
         "remove": "{{word}}を削除",
         "duplicate": "「{{word}}」は既に存在します"
       },
+      "germanPhonetic": {
+        "title": "German sound matching",
+        "description": "For German text, Tonfeder also compares custom words by how they sound (Cologne phonetics), umlauts included, e.g. \"jeschke\" → \"Jäschke\" or \"frost lein\" → \"FrostLine\"."
+      },
       "voiceActivityDetection": {
         "title": "音声区間検出 (VAD)",
         "description": "録音から無音部分を除去します。ストリーミング対応モデルはより長い音声検出区間を使用します。VAD を無効にすると音声をそのまま録音します。"
@@ -608,6 +612,11 @@
         "title": "ソースコード",
         "description": "ソースコードを見て貢献する",
         "button": "GitHub で見る"
+      },
+      "basedOn": {
+        "title": "Based on Handy",
+        "description": "Tonfeder is built on Handy by CJ Pais (MIT license). You can support the original project here.",
+        "button": "Support Handy"
       },
       "supportDevelopment": {
         "title": "開発を支援",

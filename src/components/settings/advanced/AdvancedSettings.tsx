@@ -23,6 +23,7 @@ import { LongFormChunking } from "../LongFormChunking";
 import { AccelerationSelector } from "../AccelerationSelector";
 import { LazyStreamClose } from "../LazyStreamClose";
 import { FillerWordRemoval } from "../FillerWordRemoval";
+import { GermanPhoneticCorrection } from "../GermanPhoneticCorrection";
 import { ChineseScriptSetting } from "../ChineseScript";
 import { VadBackendSelector } from "../VadBackendSelector";
 
@@ -55,6 +56,7 @@ export const AdvancedSettings: React.FC = () => {
         <FillerWordRemoval descriptionMode="tooltip" grouped={true} />
         <ChineseScriptSetting descriptionMode="tooltip" grouped={true} />
         <CustomWords descriptionMode="tooltip" grouped />
+        <GermanPhoneticCorrection descriptionMode="tooltip" grouped={true} />
         <AppendTrailingSpace descriptionMode="tooltip" grouped={true} />
       </SettingsGroup>
 
