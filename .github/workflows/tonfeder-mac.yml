@@ -11,6 +11,11 @@ name: "Tonfeder macOS"
 # - Push auf einen tonfeder/*-Branch oder manuell (Actions → Tonfeder macOS →
 #   Run workflow): baut nur und legt die DMGs 30 Tage als Artefakt ab. So lässt
 #   sich der Mac-Build prüfen, bevor es ein Release gibt.
+#
+# Sicherheit: Der Build läuft nur mit Leserechten. Schreibrechte bekommt allein
+# der Upload-Job, und der nutzt nur GitHubs eigene Werkzeuge. Fremde Actions
+# sind auf feste Commits gepinnt, damit ein verändertes Tag nichts in die
+# ausgelieferte App schleusen kann.
 
 on:
   release:
@@ -19,10 +24,11 @@ on:
     branches: ["tonfeder/**"]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   mac:
-    permissions:
-      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -34,18 +40,21 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
 
       - name: Rust stable
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # Branch stable
         with:
+          toolchain: stable
           targets: ${{ matrix.target }}
 
       - name: Frontend-Abhängigkeiten
-        run: bun install
+        run: bun install --frozen-lockfile
 
       - name: Bauen
         run: bun run tauri build --target ${{ matrix.target }} --bundles app,dmg
@@ -57,14 +66,31 @@ jobs:
           shasum -a 256 *.dmg | tee "$GITHUB_STEP_SUMMARY"
 
       - name: Als Artefakt ablegen
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: tonfeder-${{ matrix.target }}
           path: src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
           retention-days: 30
 
+  release:
+    if: github.event_name == 'release'
+    needs: mac
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: DMGs holen
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: tonfeder-*
+          path: dmg
+          merge-multiple: true
+
       - name: An das Release hängen
-        if: github.event_name == 'release'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg --clobber --repo "${{ github.repository }}"
+          # Über env statt direkt im Befehl: der Tag-Name wird so nie als
+          # Shell-Code gelesen.
+          TAG: ${{ github.event.release.tag_name }}
+          REPO: ${{ github.repository }}
+        run: gh release upload "$TAG" dmg/*.dmg --clobber --repo "$REPO"

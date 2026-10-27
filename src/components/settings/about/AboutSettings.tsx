@@ -73,7 +73,9 @@ export const AboutSettings: React.FC = () => {
             variant="secondary"
             size="md"
             onClick={() =>
-              openUrl("https://github.com/1MauriceWolfrum-tech/tonfeder-desktop")
+              openUrl(
+                "https://github.com/1MauriceWolfrum-tech/tonfeder-desktop",
+              )
             }
           >
             {t("settings.about.sourceCode.button")}

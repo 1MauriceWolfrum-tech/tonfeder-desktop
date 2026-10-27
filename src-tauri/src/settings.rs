@@ -637,6 +637,16 @@ fn default_german_phonetic_correction() -> bool {
     true
 }
 
+/// True when `version` is a dotted number version above `than` ("0.9.8" vs
+/// "0.1.0"). Anything that does not parse counts as not newer.
+fn version_is_newer(version: &str, than: &str) -> bool {
+    let parse = |v: &str| -> Option<Vec<u64>> { v.split('.').map(|p| p.parse().ok()).collect() };
+    match (parse(version), parse(than)) {
+        (Some(a), Some(b)) => a > b,
+        _ => false,
+    }
+}
+
 fn default_paste_delay_ms() -> u64 {
     60
 }
@@ -1179,6 +1189,17 @@ fn apply_settings_migrations(
     // so they see the current release's What's New, mirroring the onboarding
     // migration's explicit first-run-vs-upgrade decision.
     if settings_value.get("whats_new_last_seen_version").is_none() {
+        settings.whats_new_last_seen_version = String::new();
+        updated = true;
+    }
+
+    // Tonfeder restarted the version count at 0.1.0 after Handy's 0.9.8. A store
+    // that saw a newer version than the running app would otherwise never show
+    // What's New again; blank it like a pre-What's-New upgrade.
+    if version_is_newer(
+        &settings.whats_new_last_seen_version,
+        env!("CARGO_PKG_VERSION"),
+    ) {
         settings.whats_new_last_seen_version = String::new();
         updated = true;
     }
@@ -1802,6 +1823,32 @@ mod tests {
             settings.transcribe_gpu_device.as_deref(),
             Some("[\"vulkan\",\"id\",\"0000:01:00.0\"]")
         );
+    }
+
+    #[test]
+    fn version_is_newer_compares_numerically() {
+        assert!(version_is_newer("0.9.8", "0.1.0"));
+        assert!(version_is_newer("0.10.0", "0.9.8"));
+        assert!(!version_is_newer("0.1.0", "0.1.0"));
+        assert!(!version_is_newer("0.0.9", "0.1.0"));
+        assert!(!version_is_newer("", "0.1.0"));
+        assert!(!version_is_newer("dev", "0.1.0"));
+    }
+
+    #[test]
+    fn whats_new_seen_by_a_newer_version_is_reset() {
+        let mut settings = get_default_settings();
+        settings.whats_new_last_seen_version = "0.9.8".into();
+        let raw = serde_json::json!({
+            "settings_schema_version": CURRENT_SETTINGS_SCHEMA_VERSION,
+            "onboarding_completed": true,
+            "whats_new_last_seen_version": "0.9.8",
+            "overlay_style": "live",
+            "chinese_script": "as_transcribed",
+        });
+
+        assert!(apply_settings_migrations(&mut settings, &raw));
+        assert_eq!(settings.whats_new_last_seen_version, "");
     }
 
     #[test]

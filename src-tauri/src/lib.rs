@@ -216,7 +216,7 @@ fn initialize_core_logic(app_handle: &AppHandle) {
     // Tonfeder: load and warm up the selected model in the background right
     // at startup, so the first dictation does not pay for loading and the
     // GPU warm-up. Without a downloaded model this only logs an error.
-    transcription_manager.initiate_model_load();
+    transcription_manager.preload_model();
     app_handle.manage(tray::TrayState::new());
 
     // Note: Shortcuts are NOT initialized here.

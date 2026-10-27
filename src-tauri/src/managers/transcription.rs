@@ -664,6 +664,17 @@ impl TranscriptionManager {
 
     /// Kicks off the model loading in a background thread if it's not already loaded
     pub fn initiate_model_load(&self) {
+        self.spawn_model_load(false);
+    }
+
+    /// Tonfeder: like `initiate_model_load`, then warms the model up. Only for
+    /// loads nobody waits on (app start): a load started by a recording must
+    /// not put the throwaway warm-up run in front of the user's dictation.
+    pub fn preload_model(&self) {
+        self.spawn_model_load(true);
+    }
+
+    fn spawn_model_load(&self, warm_up: bool) {
         let mut is_loading = self.is_loading.lock().unwrap();
         if *is_loading {
             return;
@@ -697,7 +708,7 @@ impl TranscriptionManager {
             }
             // Tonfeder: warm up after the loading flag is cleared, so a
             // dictation started meanwhile is not blocked by the load wait.
-            if loaded {
+            if loaded && warm_up {
                 self_clone.warm_up();
             }
         });

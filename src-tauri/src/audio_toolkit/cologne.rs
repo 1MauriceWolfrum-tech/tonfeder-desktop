@@ -7,7 +7,7 @@
 //! additionally compares how words sound using the Cologne phonetics (Kölner
 //! Phonetik) and replaces them with the spelling the user entered.
 
-use strsim::levenshtein;
+use strsim::normalized_levenshtein;
 
 use super::text::extract_punctuation;
 
@@ -18,8 +18,9 @@ const MAX_WINDOW: usize = 4;
 /// Custom terms with fewer letters are too ambiguous to match by sound.
 const MIN_KEY_LEN: usize = 4;
 
-/// Function words never belong to a custom term. Blocking them keeps a window
-/// from swallowing "die" or "mit" just because the rest sounds similar.
+/// Function words only belong to a custom term that contains them ("Müller und
+/// Söhne"). This keeps a window from swallowing "die" or "mit" just because
+/// the rest sounds similar.
 const STOPWORDS: &[&str] = &[
     "der", "die", "das", "den", "dem", "des", "ein", "eine", "einen", "einem", "einer", "eines",
     "und", "oder", "aber", "doch", "denn", "weil", "dass", "wenn", "als", "wie", "so", "ist",
@@ -131,6 +132,8 @@ struct Entry<'a> {
     full: &'a str,
     base: &'a str,
     number: Option<&'a str>,
+    /// Lowercased words of `base`, to tell which function words it contains.
+    words: Vec<String>,
     key: String,
     code: String,
 }
@@ -157,10 +160,22 @@ impl<'a> Entry<'a> {
             full,
             base,
             number,
+            words: base
+                .split_whitespace()
+                .map(|w| core(w).to_lowercase())
+                .collect(),
             code: cologne_code(base),
             key,
         })
     }
+}
+
+/// One whitespace-separated word of the transcript.
+struct Token<'t> {
+    text: &'t str,
+    /// The whitespace before this token contains a line break. A term is never
+    /// joined across it, so paragraphs and list items stay apart.
+    after_line_break: bool,
 }
 
 /// The token without leading and trailing punctuation.
@@ -169,22 +184,31 @@ fn core(token: &str) -> &str {
     &token[prefix.len()..token.len() - suffix.len()]
 }
 
-/// Tokens that may never be part of a matched term: pure punctuation, numbers
-/// and function words.
+/// Tokens that may never be part of a matched term: pure punctuation and
+/// numbers.
 fn is_blocked(token: &str) -> bool {
-    if !token.chars().any(char::is_alphanumeric) {
-        return true;
-    }
-    let core = core(token);
-    core.chars().any(|c| c.is_ascii_digit()) || STOPWORDS.contains(&core.to_lowercase().as_str())
+    !token.chars().any(char::is_alphanumeric) || core(token).chars().any(|c| c.is_ascii_digit())
 }
 
-fn similarity(a: &str, b: &str) -> f64 {
-    let max_len = a.chars().count().max(b.chars().count());
-    if max_len == 0 {
-        return 0.0;
+/// The lowercased token if it is a function word.
+fn stopword(token: &str) -> Option<String> {
+    let word = core(token).to_lowercase();
+    STOPWORDS.contains(&word.as_str()).then_some(word)
+}
+
+/// A custom word written all in lowercase ("abtauen") still starts with a
+/// capital letter where the transcript has one, e.g. at the start of a
+/// sentence. Mixed-case spellings such as "iPhone" are kept as entered.
+fn capitalize_like(original: &str, replacement: &str) -> String {
+    let starts_upper = original.chars().next().is_some_and(char::is_uppercase);
+    if !starts_upper || replacement.chars().any(char::is_uppercase) {
+        return replacement.to_string();
     }
-    1.0 - levenshtein(a, b) as f64 / max_len as f64
+    let mut chars = replacement.chars();
+    match chars.next() {
+        Some(first) => first.to_uppercase().chain(chars).collect(),
+        None => String::new(),
+    }
 }
 
 /// Endings a German noun can take in plural or genitive.
@@ -198,30 +222,40 @@ struct Match {
 
 /// Finds the custom word that sounds most like a run of tokens starting at
 /// `start`: same Cologne code and a spelling that is close enough.
-fn best_match(tokens: &[&str], start: usize, entries: &[Entry]) -> Option<Match> {
+fn best_match(tokens: &[Token], start: usize, entries: &[Entry]) -> Option<Match> {
     let mut best: Option<Match> = None;
     let max_window = MAX_WINDOW.min(tokens.len() - start);
+    let mut stopwords: Vec<String> = Vec::new();
 
     for n in 1..=max_window {
         let window = &tokens[start..start + n];
-        let last = window[n - 1];
+        let last = window[n - 1].text;
         if is_blocked(last) {
             break;
         }
-        // Do not join across punctuation: in "frost. lein" the period closes
-        // the candidate after "frost".
+        // Do not join across punctuation or a line break: in "frost. lein"
+        // the period closes the candidate after "frost".
         if n > 1
-            && (!extract_punctuation(window[n - 2]).1.is_empty()
+            && (window[n - 1].after_line_break
+                || !extract_punctuation(window[n - 2].text).1.is_empty()
                 || !extract_punctuation(last).0.is_empty())
         {
             break;
         }
+        stopwords.extend(stopword(last));
 
-        let phrase = window.iter().map(|t| core(t)).collect::<Vec<_>>().join(" ");
+        let phrase = window
+            .iter()
+            .map(|t| core(t.text))
+            .collect::<Vec<_>>()
+            .join(" ");
         let key: String = fold(&phrase).into_iter().collect();
         let code = cologne_code(&phrase);
 
         for entry in entries {
+            if !stopwords.iter().all(|w| entry.words.contains(w)) {
+                continue;
+            }
             // "Europaletten" or "Lieferscheins" is the custom word with a
             // German ending. It must not be cut back to the dictionary form.
             // Split up ("euro paletten") it is joined and keeps its ending.
@@ -246,7 +280,7 @@ fn best_match(tokens: &[&str], start: usize, entries: &[Entry]) -> Option<Match>
             if code != entry.code {
                 continue;
             }
-            let score = similarity(&key, &entry.key);
+            let score = normalized_levenshtein(&key, &entry.key);
             let min_score = if entry.code.len() < 4 { 0.75 } else { 0.6 };
             if score < min_score {
                 continue;
@@ -259,7 +293,7 @@ fn best_match(tokens: &[&str], start: usize, entries: &[Entry]) -> Option<Match>
                 extract_punctuation(last).1.is_empty()
                     && tokens
                         .get(start + n)
-                        .is_some_and(|next| core(next) == *number)
+                        .is_some_and(|next| !next.after_line_break && core(next.text) == *number)
             });
             best = Some(match spoken_number {
                 Some(_) => Match {
@@ -308,7 +342,14 @@ pub fn apply_german_phonetic_words(text: &str, custom_words: &[String]) -> Strin
     }
 
     let spans = token_spans(text);
-    let tokens: Vec<&str> = spans.iter().map(|&(s, e)| &text[s..e]).collect();
+    let tokens: Vec<Token> = spans
+        .iter()
+        .enumerate()
+        .map(|(i, &(s, e))| Token {
+            text: &text[s..e],
+            after_line_break: i > 0 && text[spans[i - 1].1..s].contains('\n'),
+        })
+        .collect();
     let mut out = String::with_capacity(text.len());
     let mut copied = 0;
     let mut i = 0;
@@ -319,11 +360,11 @@ pub fn apply_german_phonetic_words(text: &str, custom_words: &[String]) -> Strin
             continue;
         };
         let last = i + m.consumed - 1;
-        let (prefix, _) = extract_punctuation(tokens[i]);
-        let (_, suffix) = extract_punctuation(tokens[last]);
+        let (prefix, _) = extract_punctuation(tokens[i].text);
+        let (_, suffix) = extract_punctuation(tokens[last].text);
         out.push_str(&text[copied..spans[i].0]);
         out.push_str(prefix);
-        out.push_str(&m.replacement);
+        out.push_str(&capitalize_like(core(tokens[i].text), &m.replacement));
         out.push_str(suffix);
         copied = spans[last].1;
         i = last + 1;
@@ -470,6 +511,43 @@ mod tests {
         let custom = words(&["VDI 2035", "R-290", "Öl"]);
         let text = "nach vdi zwanzig fünfunddreißig, öl und r 290";
         assert_eq!(apply_german_phonetic_words(text, &custom), text);
+    }
+
+    #[test]
+    fn keeps_capital_letter_for_lowercase_entries() {
+        let custom = words(&["abtauen", "tonfeder", "eBay-Shop"]);
+        assert_eq!(
+            apply_german_phonetic_words("Abtauen dauert lange.", &custom),
+            "Abtauen dauert lange."
+        );
+        assert_eq!(
+            apply_german_phonetic_words("Ton feder läuft. Im Ebay shop gekauft.", &custom),
+            "Tonfeder läuft. Im eBay-Shop gekauft."
+        );
+    }
+
+    #[test]
+    fn does_not_join_across_line_breaks() {
+        let custom = words(&["Filtertrockner", "FrostLine 300"]);
+        let text = "Ersatzteile: filter\ntrockner und Kabel\nfrost lein\n300 Stück";
+        assert_eq!(
+            apply_german_phonetic_words(text, &custom),
+            "Ersatzteile: filter\ntrockner und Kabel\nFrostLine\n300 Stück"
+        );
+    }
+
+    #[test]
+    fn matches_entries_that_contain_function_words() {
+        let custom = words(&["Müller und Söhne", "Andersen"]);
+        assert_eq!(
+            apply_german_phonetic_words("Rechnung an Möller und Söhne.", &custom),
+            "Rechnung an Müller und Söhne."
+        );
+        // A function word still never joins a term that does not contain it.
+        assert_eq!(
+            apply_german_phonetic_words("an der Ecke", &custom),
+            "an der Ecke"
+        );
     }
 
     #[test]
