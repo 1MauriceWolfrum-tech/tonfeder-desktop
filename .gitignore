@@ -40,6 +40,11 @@ blob-report/
 .direnv
 .envrc
 
+# Environment files with secrets never belong in the public repo
+.env
+.env.*
+!.env.example
+
 # Nix build output
 result
 

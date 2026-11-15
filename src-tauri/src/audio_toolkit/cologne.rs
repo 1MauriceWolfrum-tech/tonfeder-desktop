@@ -181,6 +181,11 @@ struct Token<'t> {
 /// The token without leading and trailing punctuation.
 fn core(token: &str) -> &str {
     let (prefix, suffix) = extract_punctuation(token);
+    // A token of punctuation only ("&", "-") has no core: extract_punctuation
+    // returns it whole as both prefix and suffix, and the slice would be [1..0].
+    if prefix.len() + suffix.len() >= token.len() {
+        return "";
+    }
     &token[prefix.len()..token.len() - suffix.len()]
 }
 
@@ -251,6 +256,8 @@ fn best_match(tokens: &[Token], start: usize, entries: &[Entry]) -> Option<Match
             .join(" ");
         let key: String = fold(&phrase).into_iter().collect();
         let code = cologne_code(&phrase);
+        // Folded like `key`, so "KREISES" ends in "es" just as "kreises" does.
+        let last_key: String = fold(core(last)).into_iter().collect();
 
         for entry in entries {
             if !stopwords.iter().all(|w| entry.words.contains(w)) {
@@ -263,7 +270,7 @@ fn best_match(tokens: &[Token], start: usize, entries: &[Entry]) -> Option<Match
                 let ending = &key[entry.key.len()..];
                 if n > 1
                     && ENDINGS.contains(&ending)
-                    && core(last).ends_with(ending)
+                    && last_key.ends_with(ending)
                     && best.as_ref().is_none_or(|b| b.similarity < 1.0)
                 {
                     best = Some(Match {
@@ -547,6 +554,32 @@ mod tests {
         assert_eq!(
             apply_german_phonetic_words("an der Ecke", &custom),
             "an der Ecke"
+        );
+    }
+
+    #[test]
+    fn entries_with_lone_punctuation_do_not_panic() {
+        let custom = words(&["Müller & Söhne", "Meier - Partner"]);
+        let text = "Rechnung an möller & söhne, Kopie an meier.";
+        // Must not panic; whether anything is replaced is secondary here.
+        let _ = apply_german_phonetic_words(text, &custom);
+    }
+
+    #[test]
+    fn lone_punctuation_after_a_term_with_number_does_not_panic() {
+        let custom = words(&["FrostLine 300"]);
+        assert_eq!(
+            apply_german_phonetic_words("Die frost lein - läuft wieder.", &custom),
+            "Die FrostLine - läuft wieder."
+        );
+    }
+
+    #[test]
+    fn joins_uppercase_split_words_with_german_ending() {
+        let custom = words(&["Kältekreis"]);
+        assert_eq!(
+            apply_german_phonetic_words("DICHTUNG DES KÄLTE KREISES", &custom),
+            "DICHTUNG DES Kältekreises"
         );
     }
 

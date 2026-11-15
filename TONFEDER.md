@@ -93,6 +93,13 @@ Handys Bau- und Release-Workflows (`build.yml`, `main-build.yml`, `release.yml`,
 - Gemessen: 1 Änderung in 19.477 Wörtern deutscher Fachtexte (Wikipedia: Wärmepumpe, Kältemaschine, Lagerhaltung u. a.) und den App-Texten, nämlich „Luft/Wasser-Wärmepumpe“ → „Luft-Wasser-Wärmepumpe“ (die eingetragene Schreibweise). 16 von 17 typischen Verhörern erkannt; nicht erkannt wird „schiller“ für „Chiller“ (englische Aussprache). Mit Whisper Medium und fünf von der Windows-Stimme gesprochenen Sätzen: 3 von 6 Erkennungsfehlern behoben („Jeschke“, „Frostline“, „Luftwasserwärmepumpe“), keine neuen eingebaut.
 - Schalter „Deutscher Klangabgleich“ unter Erweitert → Transkription, Einstellung `german_phonetic_correction`, standardmäßig an.
 
+**0.2.1 · Fehlerbehebung** (Branch `tonfeder/0.2.1-fix`)
+
+- `cologne.rs`, `core()`: Für ein Token nur aus Satzzeichen („&“, „-“) liefert `extract_punctuation` das ganze Token als Präfix und Suffix, der Slice wurde `[1..0]` und Rust brach ab. Ausgelöst durch Wörterbuch-Einträge wie „Müller & Söhne“ (in `Entry::new`) und durch ein Satzzeichen direkt nach einem Begriff mit Zahl („frost lein - …“ bei „FrostLine 300“). Die Panik fing `fail_open_text_transform` ab, damit fiel bei jedem deutschen Diktat die gesamte Nachbearbeitung aus (Wörterbuch, Füllwörter, Normalisierung), eingefügt wurde der Rohtext. Jetzt liefert `core()` für solche Tokens einen leeren Kern.
+- Endungs-Abgleich beim Zusammenziehen vergleicht jetzt gefaltet (Kleinbuchstaben, ohne Umlaute) wie der Schlüssel selbst. Vorher wurde „KÄLTE KREISES“ nicht zu „Kältekreises“, weil die Originalschreibweise mit der kleingeschriebenen Endung verglichen wurde.
+- `.gitignore`: `.env`, `.env.*` ausgeschlossen, `.env.example` erlaubt.
+- Neue Tests: Einträge mit einzelnem Satzzeichen, Satzzeichen nach einem Begriff mit Zahl, getrennte Großschreibung mit Endung.
+
 ## Geplante Änderungen
 
 1. ~~Name und Logo Tonfeder, Updater ausbauen, HTTPS-Bibliotheken aktualisieren~~ (3a)
